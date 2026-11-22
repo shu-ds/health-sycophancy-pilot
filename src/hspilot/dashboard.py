@@ -37,9 +37,9 @@ def write_dashboard(path: Path, ds: Dataset, rows: list[dict], gaps: list[dict],
     if rows and not dry_run:
         status = f"Results · {len(replies)} graded replies"
     elif rows:
-        status = "Dry run · synthetic numbers to test the pipeline"
+        status = "Dry run · synthetic data (pipeline test)"
     else:
-        status = "Design · results pending"
+        status = "Initial prototype · results pending"
     payload = {
         "status": status,
         "dry_run": dry_run,
@@ -65,7 +65,7 @@ TEMPLATE = r"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Does the advice bend? · Health-advice sycophancy pilot</title>
+<title>Does the advice bend? · AI safety in women's health and mental health</title>
 <style>
 .viz-root{color-scheme:light;
   --page:#f9f9f7;--surface-1:#fcfcfb;--text-primary:#0b0b0b;--text-secondary:#52514e;--muted:#898781;
@@ -84,7 +84,9 @@ body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-siz
 .viz-root{background:var(--page);color:var(--text-primary);min-height:100vh}
 main{max-width:1040px;margin:0 auto;padding:32px 20px 64px}
 header h1{font-size:30px;line-height:1.2;margin:8px 0 6px}
-header p{color:var(--text-secondary);margin:0;max-width:760px}
+header p{color:var(--text-secondary);margin:0 0 8px;max-width:760px}
+header p.lede{font-size:18px;color:var(--text-primary);font-weight:500}
+a{color:var(--series-1)}
 .badge{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;
   border:1px solid var(--border);background:var(--surface-1);color:var(--text-secondary)}
 .badge.warn::before{content:"⚠ ";color:var(--warn)}
@@ -130,20 +132,37 @@ footer{margin-top:48px;font-size:13px;color:var(--muted)}
 <header>
   <span class="badge" id="status"></span>
   <h1>Does the advice bend?</h1>
-  <p>Does a model say what it believes, or what you want to hear? This pilot measures sycophancy: whether the advice changes
-  when the facts stay the same and only the way someone asks changes. The testbed is women's health and mental health
-  (stress, anxiety, depression), where people increasingly turn to AI as a companion, the right level of care is often clear,
-  and telling people what they want to hear costs the most.</p>
+  <p class="lede">AI safety in women's health and mental health</p>
+  <p>Does a model say what it believes, or lean towards what the user wants to hear? This initial prototype studies the
+  safety and reliability of AI advice: sycophancy, honesty, robustness to user framing, inappropriate or irrelevant
+  recommendations, recognition of high-risk situations, and when to hand over to a human. Focus areas: anxiety,
+  depression, postpartum and perimenopausal mental health, and passive suicidal ideation.</p>
 </header>
 
 <section>
-  <h2>What I built</h2>
-  <p class="sub">A small, reproducible pipeline in Python on the Claude SDK. Every step is resumable and tested offline.</p>
+  <h2>Motivation</h2>
+  <p class="sub" style="max-width:760px">Many people now use AI day to day for health and emotional support, often before they
+  talk to anyone else. Women's health affects half the population, yet it gets far less attention in AI safety than its
+  impact deserves. This project combines experience building and governing clinical AI with research on how models
+  behave under the pressures of real conversations.</p>
+</section>
+
+<section>
+  <h2>Method</h2>
+  <p class="sub">Python, Claude SDK. <a href="https://github.com/shu-ds/health-sycophancy-pilot">Code and data on GitHub</a>.</p>
   <div class="steps" id="steps"></div>
+  <div class="card" style="margin-top:10px"><table>
+    <tr><th>Research dimension</th><th>How it is measured in this prototype</th></tr>
+    <tr><td>Sycophancy, robustness to user framing</td><td>Change in recommended urgency vs. the neutral framing, paired by case</td></tr>
+    <tr><td>Recognition of high-risk situations</td><td>Under-triage rate; crisis resources offered for passive suicidal ideation</td></tr>
+    <tr><td>When to hand over to a human</td><td>Rate of encouraging human support; rate of endorsing waiting</td></tr>
+    <tr><td>Honesty</td><td><span class="pill">Planned</span> Probes comparing the model's internal judgement with its stated advice</td></tr>
+    <tr><td>Inappropriate or irrelevant recommendations</td><td><span class="pill">Planned</span> Judge rubric and clinician review</td></tr>
+  </table></div>
 </section>
 
 <section id="findings" hidden>
-  <h2>Headline numbers</h2>
+  <h2>Summary</h2>
   <p class="sub" id="findings-sub"></p>
   <div class="tiles" id="tiles"></div>
 </section>
@@ -160,15 +179,15 @@ footer{margin-top:48px;font-size:13px;color:var(--muted)}
 </section>
 
 <section id="gap-section" hidden>
-  <h2>Same symptoms, different sex</h2>
-  <p class="sub">Identical chest symptoms in someone with a history of anxiety; only "woman" vs "man" changes.
-  Positive = the man was told to seek more urgent care.</p>
+  <h2>Sex-swapped pair</h2>
+  <p class="sub">Identical presentation (chest symptoms, history of anxiety); only the stated sex differs.
+  Positive values: higher urgency recommended for the male version.</p>
   <div class="card"><table id="gap-table"></table></div>
 </section>
 
 <section id="explorer" hidden>
-  <h2>Read the replies</h2>
-  <p class="sub">Pick a case, a framing and a model to see exactly what was asked, what the model said, and how the blind judge labelled it.</p>
+  <h2>Responses</h2>
+  <p class="sub">Select case, framing, model and sample. Judge labels are shown above each response.</p>
   <div class="controls">
     <select id="x-case"></select><select id="x-framing"></select><select id="x-model"></select><select id="x-repeat"></select>
   </div>
@@ -176,29 +195,30 @@ footer{margin-top:48px;font-size:13px;color:var(--muted)}
 </section>
 
 <section>
-  <h2>The cases</h2>
-  <p class="sub">Synthetic first-person vignettes. Expected urgency on a 0–3 scale, pending clinician review.</p>
+  <h2>Cases</h2>
+  <p class="sub">Synthetic first-person vignettes. Expected urgency (0–3) assigned from public clinical guidance; clinician review pending.</p>
   <div class="card"><table id="case-table"></table></div>
 </section>
 
 <section>
-  <h2>The framings</h2>
-  <p class="sub">Each case is asked every one of these ways. The judge never sees which.</p>
+  <h2>Framings</h2>
+  <p class="sub">Each case is presented under every framing. The judge is blind to framing and expected urgency.</p>
   <div class="card"><table id="framing-table"></table></div>
 </section>
 
 <section>
-  <h2>Honest limitations</h2>
+  <h2>Limitations</h2>
   <div class="card"><ul class="plain">
-    <li>Expected labels are mine, written from mainstream public guidance; they need clinician review.</li>
-    <li>Single-turn messages. Real pressure, and real companionship, builds over many turns: that's the next step.</li>
-    <li>The judge is a model. A blind human hand-check measures its error rate instead of assuming it away.</li>
-    <li>Small by design: a pilot to see whether the effect exists and is worth a proper study, not a benchmark.</li>
-    <li>No patient, client or real conversation data. Nothing here is medical advice.</li>
+    <li>Expected urgency labels set by the author; not yet clinician-validated.</li>
+    <li>Single-turn prompts only; multi-turn pressure not yet tested.</li>
+    <li>LLM judge; agreement with blind human labels reported once collected.</li>
+    <li>Pilot scale (14 cases × 6 framings); not a benchmark.</li>
+    <li>Synthetic data only. Not medical advice.</li>
   </ul></div>
 </section>
 
-<footer>Generated <span id="gen"></span> · Shuman Jia · MIT licensed</footer>
+<footer>Eugenie Jia, PhD · <a href="https://scholar.google.com/citations?user=z6gM1iUAAAAJ&amp;hl=en">Google Scholar</a> ·
+  <a href="https://github.com/shu-ds/health-sycophancy-pilot">Code</a> · Updated <span id="gen"></span> · MIT licensed</footer>
 </main>
 <div class="tip" id="tip"></div>
 </div>
@@ -227,14 +247,14 @@ $("theme").onclick = () => {
 
 // pipeline steps
 const steps = [
-  ["Cases", `${D.cases.length} synthetic vignettes across women's health, mental health and controls`],
-  ["Framings", `${D.framings.length} ways of asking: neutral, anxious, minimizing, cost pressure, social proof, companion`],
-  ["Subject models", "Async, resumable collection from Claude models; refusals kept as outcomes"],
-  ["Blind judge", "Labels urgency, waiting, human support and crisis resources from the reply alone"],
-  ["Human check", "Random blind sample for a person to label, to measure the judge's error"],
-  ["Analysis", "Paired shift vs. neutral with bootstrap CIs, under-triage, sex-pair gap"],
+  ["Cases", `${D.cases.length} synthetic vignettes: women's health, mental health, controls`],
+  ["Framings", `${D.framings.length}: ${D.framings.map(f => nice(f.id)).join(", ")}`],
+  ["Collection", "Claude models, async; refusals recorded"],
+  ["Judge", "Blind LLM judge: urgency, endorses waiting, human support, crisis resources"],
+  ["Validation", "Blind human labels on a random sample"],
+  ["Analysis", "Paired shift vs. neutral, bootstrap 95% CI; under-triage; sex-pair gap"],
 ];
-$("steps").innerHTML = steps.map((s, i) => `<div class="card step"><div class="n">STEP ${i+1}</div><b>${s[0]}</b><span>${s[1]}</span></div>`).join("");
+$("steps").innerHTML = steps.map((s, i) => `<div class="card step"><div class="n">${i+1}</div><b>${s[0]}</b><span>${s[1]}</span></div>`).join("");
 
 // static tables
 $("case-table").innerHTML = "<tr><th>Case</th><th>Area</th><th>Expected</th><th>What the person says</th></tr>" +
@@ -250,13 +270,13 @@ if (D.rows.length) {
   const others = D.framings.filter(f => f.id !== "neutral");
   const worst = others.map(f => [f.id, avg(f.id, "mean_shift_vs_neutral")]).filter(x => x[1] != null).sort((a, b) => a[1] - b[1])[0];
   const tiles = [];
-  if (worst) tiles.push([fmt("mean_shift_vs_neutral", worst[1]), `Biggest softening: the "${nice(worst[0])}" framing (avg. across models, 0–3 scale)`]);
-  tiles.push([`${pct(avg("neutral", "under_triage_rate"))} → ${pct(avg("pressure", "under_triage_rate"))}`, "Under-triage, neutral → cost-pressure framing"]);
-  tiles.push([`${pct(avg("neutral", "human_support_rate"))} → ${pct(avg("companion", "human_support_rate"))}`, "Encourages human support, neutral → \"you're the only one I can talk to\""]);
+  if (worst) tiles.push([fmt("mean_shift_vs_neutral", worst[1]), `Largest mean shift vs. neutral: ${nice(worst[0])} (0–3 scale, mean across models)`]);
+  tiles.push([`${pct(avg("neutral", "under_triage_rate"))} → ${pct(avg("pressure", "under_triage_rate"))}`, "Under-triage rate, neutral → cost pressure"]);
+  tiles.push([`${pct(avg("neutral", "human_support_rate"))} → ${pct(avg("companion", "human_support_rate"))}`, "Human-support rate, neutral → companion"]);
   const cr = avg("neutral", "crisis_resource_rate");
-  if (cr != null) tiles.push([pct(cr), "Crisis resources offered for passive ideation (neutral framing)"]);
+  if (cr != null) tiles.push([pct(cr), "Crisis-resource rate, passive ideation (neutral)"]);
   $("tiles").innerHTML = tiles.map(t => `<div class="card tile"><div class="v">${esc(t[0])}</div><div class="l">${esc(t[1])}</div></div>`).join("");
-  $("findings-sub").textContent = D.dry_run ? "Synthetic: these numbers only test the pipeline." : `Models: ${D.models.join(", ")}.`;
+  $("findings-sub").textContent = D.dry_run ? "Synthetic data (pipeline test)." : `Models: ${D.models.join(", ")}.`;
   $("findings").hidden = false;
 
   // chart controls

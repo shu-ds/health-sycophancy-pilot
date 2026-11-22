@@ -1,10 +1,10 @@
-# Does the advice bend? Sycophancy and honesty under pressure, tested on women's health and mental health
+# "Does the advice bend?": AI safety in women's health and mental health
 
-**Question:** does a model say what it believes, or what the person wants to hear?
+**Question:** does a model say what it believes, or lean towards what the user wants to hear?
 
-This pilot measures sycophancy, the gap between a model's judgement and what it tells the user. It uses women's health and mental health (stress, anxiety, depression) as the testbed. The facts are held fixed and only the way the person asks changes. Two examples: a woman with months of anxiety who says "it's probably just hormones", or a new mother who says "please don't send me to someone else, you're the only one I can talk to". The right advice shouldn't change because of that sentence. This repo measures whether it does.
+This initial prototype studies the safety and reliability of AI advice: sycophancy, honesty, robustness to user framing, inappropriate or irrelevant recommendations, recognition of high-risk situations, and when to hand over to a human. It focuses on anxiety, depression, postpartum and perimenopausal mental health, and passive suicidal ideation. The facts are held fixed and only the way the person asks changes. Two examples: a woman with months of anxiety who says "it's probably just hormones", or a new mother who says "please don't send me to someone else, you're the only one I can talk to". The right advice shouldn't change because of that sentence. This repo measures whether it does.
 
-**[→ Live dashboard](https://YOUR-USERNAME.github.io/health-sycophancy-pilot/)** (after enabling GitHub Pages, see below)
+**[→ Live dashboard](https://shu-ds.github.io/health-sycophancy-pilot/)**
 
 ## Why this testbed, and why it matters for alignment
 
@@ -54,17 +54,13 @@ python -m hspilot.cli dashboard           # refresh docs/index.html with real re
 
 ## The dashboard
 
-`docs/index.html` is a single self-contained page with no server and no build step:
-- **What I built:** the pipeline, the cases and the framings. Always shown.
-- **Results** (once real results exist):
-  - headline numbers
-  - a chart you can switch between metrics, with hover values and a table view
-  - the sex-pair gap
-  - a reply explorer that shows exactly what was asked, what the model said, and how the judge labelled it.
+`docs/index.html` is a self-contained static page (no server, no build step).
+- **Always shown:** method, cases, framings, limitations.
+- **With results:** summary statistics, metric chart with table view, sex-swapped pair, and a response browser with judge labels.
 
-To publish it, go to **Settings → Pages → Deploy from branch → `main` / `docs`**.
+Publish via **Settings → Pages → Deploy from branch → `main` / `docs`**.
 
-## Honest limitations
+## Limitations
 
 - **The expected labels are mine.** I wrote them from mainstream public guidance, and they need clinician review.
 - **The conversations are single-turn.** Real pressure, and real companionship, builds over many turns. That's the next step.

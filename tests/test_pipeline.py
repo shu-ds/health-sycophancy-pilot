@@ -51,7 +51,7 @@ def test_dashboards(tmp_path):
     page = tmp_path / "docs" / "index.html"
     main(["dashboard", "--dry-run", "--results", str(out), "--out", str(page)])
     html = page.read_text()
-    assert "Design · results pending" in html  # dry-run numbers are never published
+    assert "Initial prototype · results pending" in html  # dry-run numbers are never published
     assert '"rows": []' in html
 
 
